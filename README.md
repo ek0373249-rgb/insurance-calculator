@@ -18,20 +18,10 @@
 3.  **결과 확인**: 하단의 요약표에서 세대별 지급액을 비교합니다.
 4.  **결과 저장**: [결과 엑셀 다운로드] 버튼으로 계산 결과를 파일로 보관합니다.
 
-## 배포 방법 (Deployment)
+## 의견 주시는 곳 (Deployment)
 
-이 프로젝트는 정적 웹사이트(HTML/CSS/JS)이므로 **GitHub Pages** 또는 **Netlify Drop**을 통해 무료로 쉽게 배포할 수 있습니다.
+https://docs.google.com/forms/d/e/1FAIpQLScAF8N_GH20xsy-9fDM7VLwBnqtlARpjth4CT90f0nE4sSdUg/viewform?usp=sharing&ouid=110799575233809600552﻿
 
-### 방법 1: GitHub Pages (추천)
-1.  이 폴더의 파일들을 GitHub 저장소(Repository)에 올립니다.
-2.  저장소의 `Settings` -> `Pages` 메뉴로 이동합니다.
-3.  `Source`를 `Deploy from a branch`로 선택하고, `main` (또는 `master`) 브랜치와 `/root` 폴더를 선택 후 저장합니다.
-4.  잠시 후 생성되는 주소(URL)를 통해 접속할 수 있습니다.
-
-### 방법 2: Netlify Drop (간편)
-1.  [Netlify Drop](https://app.netlify.com/drop) 사이트에 접속합니다.
-2.  이 프로젝트 폴더(`webapp`) 전체를 브라우저 화면으로 **드래그 앤 드롭** 합니다.
-3.  즉시 배포된 주소가 생성됩니다.
 
 ---
 Developed by [Your Name/Team]
