@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실손보험 계산기 Pro</title>
+    <meta name="description" content="세대별 실손의료비 지급액 비교 계산기">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>실손보험 계산기 Pro</h1>
+            <p class="subtitle">1~4세대 예상 지급액 한눈에 비교하기</p>
+        </header>
+
+        <main class="calculator">
+
+            <div class="guide-box">
+                <p>💡 <strong>세대 구분 팁</strong>: 실손보험 <strong>최초 가입 시기</strong>를 기준으로 확인하세요.</p>
+                <div class="limit-info">
+                    <strong>📉 통원 1회당 지급 한도</strong>
+                    <ul>
+                        <li><strong>1세대</strong>: 10만원 (약제비 포함)</li>
+                        <li><strong>2~4세대</strong>: 병원(외래) 25만원 / 약국 5만원</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Excel Controls with Reset -->
+            <div class="excel-controls">
+                <button id="downloadTemplateBtn" class="excel-btn secondary">엑셀 양식 다운로드</button>
+                <label for="excelUpload" class="excel-btn primary">엑셀 업로드</label>
+                <input type="file" id="excelUpload" accept=".xlsx, .xls" style="display: none;">
+                <button id="resetBtn" class="excel-btn secondary"
+                    style="border-color:#ef4444; color:#ef4444;">초기화</button>
+                <button id="downloadResultBtn" class="excel-btn secondary"
+                    style="margin-left:auto; border-color:#2563eb; color:#2563eb;">결과 엑셀 다운로드</button>
+            </div>
+
+            <!-- Summary Table -->
+            <div id="summarySection" class="summary-section" style="display:none;">
+                <h3 class="summary-title">입력된 영수증 요약 및 예상 지급액</h3>
+                <div class="table-wrapper">
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" style="width:30px;">#</th>
+                                <th rowspan="2" style="width:40px;">구분</th>
+                                <th rowspan="2" style="width:80px;">날짜</th>
+                                <th rowspan="2" style="width:50px;">코드</th>
+                                <th rowspan="2" style="width:60px;">의료기관</th>
+                                <th colspan="6" style="text-align:center; border-bottom:1px solid #e2e8f0;">입력 정보 (원)
+                                </th>
+                                <th colspan="4"
+                                    style="text-align:center; border-bottom:1px solid #e2e8f0; background:#eff6ff; color:#1e40af;">
+                                    세대별 예상 지급액 (원)</th>
+                            </tr>
+                            <tr>
+                                <th>급여<br>(본인)</th>
+                                <th>급여<br>(공단)</th>
+                                <th>급여<br>(전액)</th>
+                                <th>비급여<br>(선택)</th>
+                                <th>비급여<br>(이외)</th>
+                                <th style="background:#f1f5f9;">진료비<br>총액</th>
+                                <th style="background:#eff6ff;">1세대</th>
+                                <th style="background:#eff6ff;">2세대</th>
+                                <th style="background:#eff6ff;">3세대</th>
+                                <th style="background:#eff6ff;">4세대</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summaryBody">
+                            <!-- Summary rows will go here -->
+                        </tbody>
+                        <tfoot>
+                            <tr id="summaryTotalRow">
+                                <td colspan="5" style="text-align:center;"><strong>Total</strong></td>
+                                <td id="sumPaySelf">0</td>
+                                <td id="sumPayNHIS">0</td>
+                                <td id="sumPayFull">0</td>
+                                <td id="sumNonPaySelect">0</td>
+                                <td id="sumNonPayOther">0</td>
+                                <td id="sumTotalCost" style="background:#f1f5f9;">0</td>
+                                <td id="calcGen1">0</td>
+                                <td id="calcGen2">0</td>
+                                <td id="calcGen3">0</td>
+                                <td id="calcGen4">0</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+            </div>
+    </div>
+
+    <!-- Receipts Container -->
+    <div id="receiptsContainer">
+        <!-- Receipts will be added here via JS -->
+    </div>
+
+    <button id="addReceiptBtn" class="add-btn">+ 영수증 추가하기</button>
+
+
+    </main>
+
+    <footer class="footer">
+        <p>※ 3대 비급여 특약 등 세부 조건은 약관마다 다를 수 있습니다.</p>
+    </footer>
+    </div>
+
+    <!-- Receipt Template -->
+    <template id="receiptTemplate">
+        <div class="receipt-card">
+            <div class="receipt-header">
+                <span class="receipt-title">영수증 #<span class="count">1</span></span>
+                <button class="delete-btn" aria-label="삭제">×</button>
+            </div>
+
+            <div class="receipt-body">
+                <div class="form-row">
+                    <div class="form-group date-group">
+                        <label>진료일자</label>
+                        <input type="date" class="receipt-date">
+                    </div>
+
+                    <!-- NEW: Per-Receipt Type Toggle -->
+                    <div class="form-group type-group">
+                        <label>진료유형</label>
+                        <div class="type-toggle-wrapper">
+                            <label class="type-radio">
+                                <input type="radio" value="outpatient" class="type-input">
+                                <span>통원</span>
+                            </label>
+                            <label class="type-radio">
+                                <input type="radio" value="inpatient" class="type-input">
+                                <span>입원</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group facility-select-group">
+                        <label>의료기관</label>
+                        <select class="facility-select">
+                            <option value="clinic">의원</option>
+                            <option value="hospital">병원</option>
+                            <option value="general">종합병원</option>
+                            <option value="tertiary">상급종합병원</option>
+                            <option value="pharmacy">약국</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>질병코드</label>
+                        <input type="text" class="disease-code" placeholder="예: J20" maxlength="6">
+                    </div>
+                </div>
+
+                <!-- 5-Field Input Grid -->
+                <div class="cost-grid">
+                    <div class="cost-group">
+                        <label>급여 (본인부담)</label>
+                        <div class="input-wrapper">
+                            <input type="text" class="cost-pay-self" placeholder="0" inputmode="numeric">
+                            <span class="currency">원</span>
+                        </div>
+                    </div>
+                    <div class="cost-group">
+                        <label>급여 (공단부담)</label>
+                        <div class="input-wrapper">
+                            <input type="text" class="cost-pay-nhis" placeholder="0" inputmode="numeric">
+                            <span class="currency">원</span>
+                        </div>
+                    </div>
+                    <div class="cost-group">
+                        <label>급여 (전액본인)</label>
+                        <div class="input-wrapper">
+                            <input type="text" class="cost-pay-full" placeholder="0" inputmode="numeric">
+                            <span class="currency">원</span>
+                        </div>
+                    </div>
+                    <div class="cost-group">
+                        <label>비급여 (선택)</label>
+                        <div class="input-wrapper">
+                            <input type="text" class="cost-nonpay-select" placeholder="0" inputmode="numeric">
+                            <span class="currency">원</span>
+                        </div>
+                    </div>
+                    <div class="cost-group">
+                        <label>비급여 (이외)</label>
+                        <div class="input-wrapper">
+                            <input type="text" class="cost-nonpay-other" placeholder="0" inputmode="numeric">
+                            <span class="currency">원</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="warning-text" style="display:none;">⚠️ 보상 제외 가능 코드가 감지되었습니다.</p>
+            </div>
+        </div>
+    </template>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
